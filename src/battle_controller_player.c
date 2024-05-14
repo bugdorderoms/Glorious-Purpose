@@ -111,6 +111,8 @@ extern u8 GetWeatherBallType(void);
 extern u8 GetHiddenPowerType(struct Pokemon * mon);
 extern const u16 gNaturePowerMoves[];
 
+static void MoveSelectionDisplaySplitIcon(void);
+
 static void (*const sPlayerBufferCommands[CONTROLLER_CMDS_COUNT])(void) =
 {
     [CONTROLLER_GETMONDATA]               = PlayerHandleGetMonData,
@@ -176,6 +178,9 @@ static const u8 sTargetIdentities[] = { B_POSITION_PLAYER_LEFT, B_POSITION_PLAYE
 
 // unknown unused data
 static const u8 sUnused[] = { 0x48, 0x48, 0x20, 0x5a, 0x50, 0x50, 0x50, 0x58 };
+
+static const u16 sSplitIcons_Pal[] = INCBIN_U16("graphics/battle_interface/pss_split_battle_icons.gbapal");
+static const u8 sSplitIcons_Gfx[] = INCBIN_U8("graphics/battle_interface/pss_split_battle_icons.4bpp");
 
 void BattleControllerDummy(void)
 {
@@ -1440,6 +1445,7 @@ static void MoveSelectionDisplayMoveType(void)
     }
     StringCopy(txtPtr, strPtr);
     BattlePutTextOnWindow(gDisplayedStringBattle, B_WIN_MOVE_TYPE);
+    MoveSelectionDisplaySplitIcon();
 }
 
 void MoveSelectionCreateCursorAt(u8 cursorPosition, u8 arg1)
@@ -2986,4 +2992,16 @@ static void PreviewDeterminativeMoveTargets(void)
         }
         BeginNormalPaletteFade(bitMask, 8, startY, 0, RGB_WHITE);
     }
+}
+
+static void MoveSelectionDisplaySplitIcon(void){
+	struct ChooseMoveStruct *moveInfo;
+	u32 moveCategory;
+
+	moveInfo = (struct ChooseMoveStruct*)(&gBattleBufferA[gActiveBattler][MAX_BATTLERS_COUNT]);
+	moveCategory = gBattleMoves[moveInfo->moves[gMoveSelectionCursor[gActiveBattler]]].category;
+	LoadPalette(sSplitIcons_Pal, 10 * 0x10, 0x20);
+	BlitBitmapToWindow(B_WIN_PSS_ICON, sSplitIcons_Gfx + 0x80 * moveCategory, 0, 0, 16, 16);
+	PutWindowTilemap(B_WIN_PSS_ICON);
+	CopyWindowToVram(B_WIN_PSS_ICON, 3);
 }
